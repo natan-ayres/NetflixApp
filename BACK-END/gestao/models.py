@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 class Movies(models.Model):
+    class Meta:
+        verbose_name = 'Movie'
     RATINGS = [
     ('G', 'G'),
     ('PG', 'PG'),
@@ -10,7 +12,7 @@ class Movies(models.Model):
     ('NC-17', 'NC-17'),
     ]
 
-    name = models.CharField(max_length=100)
+    title = models.CharField(max_length=100)
     genre = models.CharField(max_length=50)
     director = models.CharField(max_length=100, blank=True, null=True)
     writer = models.TextField(max_length=200, blank=True, null=True)
@@ -43,9 +45,11 @@ class Movies(models.Model):
             self.save()
 
     def __str__(self):
-        return '{self.name}({launch_date})'
+        return '{self.title}({launch_date})'
     
 class Series(models.Model):
+    class Meta:
+        verbose_name_plural = 'Series'
     RATINGS = [
     ('TV-Y', 'TV-Y'),
     ('TV-Y7', 'TV-Y7'),
@@ -56,7 +60,7 @@ class Series(models.Model):
     ('TV-MA', 'TV-MA'),
 ] 
     
-    name = models.CharField(max_length=100)
+    title = models.CharField(max_length=100)
     genre = models.CharField(max_length=50)
     director = models.CharField(max_length=100, blank=True, null=True)
     writer = models.TextField(max_length=200, blank=True, null=True)
@@ -69,11 +73,14 @@ class Series(models.Model):
     seasons = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
-        return '{self.name}({launch_date})'
+        return '{self.title}({launch_date})'
     
 
 class UserProfiles(models.Model):
-    username = models.CharField(max_length=30)
+    class Meta:
+        verbose_name = 'UserProfile'
+        verbose_name_plural = 'UserProfiles'
+    name = models.CharField(max_length=30)
     image = models.ImageField(upload_to='profile_pics', blank=True, null=True)
     account = models.IntegerField(default=0)
     favorites = models.ManyToManyField(Movies, related_name='favorites', blank=True)
@@ -125,13 +132,16 @@ class UserProfiles(models.Model):
 
 
 class UserAccounts(AbstractUser):
+    class Meta:
+        verbose_name = 'UserAccount'
+        verbose_name_plural = 'UserAccounts'
     PLANS = [
     ('BASIC', 'BASIC'),
     ('STANDARD', 'STANDARD'),
     ('PREMIUM', 'PREMIUM'),
     ]
-    plans = models.CharField(blank=True, null=True, max_length=20, choices=PLANS)
-    users = models.ManyToManyField(UserProfiles, related_name='users', blank=True)
+    plans = models.CharField(blank=True, null=True, max_length=20, choices=PLANS, default='BASIC')
+    profiles = models.ManyToManyField(UserProfiles, related_name='profiles', blank=True)
      
     def __str__(self):
         return '{self.username} - {self.plans}'
