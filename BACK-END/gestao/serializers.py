@@ -1,6 +1,5 @@
 from rest_framework import serializers
-from .models import Movies, Series, ReviewsMovies, ReviewsSeries
-from django.contrib.auth.models import User
+from .models import Movies, Series, UserProfiles, UserAccounts
 
 class MoviesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -12,15 +11,19 @@ class SeriesSerializer(serializers.ModelSerializer):
         model = Series
         fields = '__all__'
 
-class ReviewsMoviesSerializer(serializers.ModelSerializer):
+class UserProfilesSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ReviewsMovies
+        model = UserProfiles
         fields = '__all__'
 
-class ReviewsSeriesSerializer(serializers.ModelSerializer):
+class UserAccountsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ReviewsSeries
+        model = UserAccounts
         fields = '__all__'
+
+
+
+
 
 
 

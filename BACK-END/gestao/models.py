@@ -1,11 +1,8 @@
 from django.db import models
-from django.conf import settings
-from django.contrib.auth.models import User
-from django.db.models import Avg
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.contrib.auth.models import AbstractUser
 
 class Movies(models.Model):
-    CLASSIFICACOES_CHOICES = [
+    RATINGS = [
     ('G', 'G'),
     ('PG', 'PG'),
     ('PG-13', 'PG-13'),
@@ -20,25 +17,36 @@ class Movies(models.Model):
     actors = models.TextField(max_length=200, blank=True, null=True)
     sinopse = models.TextField(max_length=200)
     poster_url = models.CharField(max_length=200)
-    rated = models.CharField(blank=True, null=True, max_length=20, choices=CLASSIFICACOES_CHOICES)
+    rated = models.CharField(blank=True, null=True, max_length=20, choices=RATINGS)
     launch_date = models.CharField(blank=True, null=True, max_length=20)
     runtime = models.IntegerField()
-    stars = models.FloatField(default=0)
-    user_reviews = models.ManyToManyField(User, through='ReviewsMovies')
+    likeability = models.JSONField(default=dict, null=True, blank=True)
 
-    def get_avg_stars(self):
-        reviews = self.reviews.all() 
-        if reviews.exists():
-            avg_stars = reviews.aggregate(Avg('rating'))['stars__avg']
-            self.stars = avg_stars
-        else:
-            self.stars = None
+    def save(self, *args, **kwargs):
+        if not self.likeability:
+            self.likeability = {'unlike': [], 'like': [], 'verylike': []}  
+        super().save(*args, **kwargs)
+    
+    def addunlike(self, profile):
+        if profile not in self.likeability['unlike']:
+            self.likeability['unlike'].append(profile)
+            self.save()
+
+    def addlike(self, profile):
+        if profile not in self.likeability['like']:
+            self.likeability['like'].append(profile)
+            self.save()
+    
+    def addverylike(self, profile):
+        if profile not in self.likeability['verylike']:
+            self.likeability['verylike'].append(profile)
+            self.save()
 
     def __str__(self):
         return '{self.name}({launch_date})'
     
 class Series(models.Model):
-    CLASSIFICACOES_CHOICES = [
+    RATINGS = [
     ('TV-Y', 'TV-Y'),
     ('TV-Y7', 'TV-Y7'),
     ('TV-Y7-FV', 'TV-Y7-FV'),
@@ -54,62 +62,76 @@ class Series(models.Model):
     writer = models.TextField(max_length=200, blank=True, null=True)
     actors = models.TextField(max_length=200, blank=True, null=True)
     sinopse = models.TextField(max_length=200)
-    rated = models.CharField(blank=True, null=True, max_length=20, choices=CLASSIFICACOES_CHOICES)
+    rated = models.CharField(blank=True, null=True, max_length=20, choices=RATINGS)
     poster_url = models.CharField(max_length=200)
     launch_date = models.CharField(blank=True, null=True, max_length=20)
     episodes = models.IntegerField()
     seasons = models.IntegerField(blank=True, null=True)
-    stars = models.FloatField(blank=True, null=True)
-    user_reviews = models.ManyToManyField(User, through='ReviewsSeries')
-
-
-    def get_avg_stars(self):
-        reviews = self.reviews.all() 
-        if reviews.exists():
-            avg_stars = reviews.aggregate(Avg('rating'))['stars__avg']
-            self.stars = avg_stars
-        else:
-            self.stars = None
 
     def __str__(self):
         return '{self.name}({launch_date})'
-
-class ReviewsMovies(models.Model):
-    class Meta:
-        verbose_name = 'Review - Movie'
-        verbose_name_plural = 'Reviews - Movies'
-
-    movie = models.ForeignKey(Movies, related_name='reviews', on_delete=models.CASCADE)
-    date = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    review = models.TextField(max_length=250)
-    rating = models.FloatField(validators=[MinValueValidator(0,0), MaxValueValidator(10,0)])
-    show = models.BooleanField(default=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True,)
-
-    def save(self, *args, **kwargs):
-        super(ReviewsMovies, self).save(*args, **kwargs)
-        self.movie.get_avg_rating()
-        self.movie.save()
-
-    def __str__(self):
-        return f"{self.movie.name} Review - {self.rating}"
     
-class ReviewsSeries(models.Model):
-    class Meta:
-        verbose_name = 'Review - Series'
-        verbose_name_plural = 'Reviews - Series'
 
-    series = models.ForeignKey(Series, related_name='reviews', on_delete=models.CASCADE)
-    date = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    review = models.TextField(max_length=250)
-    rating = models.FloatField(validators=[MinValueValidator(0,0), MaxValueValidator(10,0)])
-    show = models.BooleanField(default=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True,)
+class UserProfiles(models.Model):
+    username = models.CharField(max_length=30)
+    image = models.ImageField(upload_to='profile_pics', blank=True, null=True)
+    account = models.IntegerField(default=0)
+    favorites = models.ManyToManyField(Movies, related_name='favorites', blank=True)
+    favorites_series = models.ManyToManyField(Series, related_name='favorites_series', blank=True)
+    watchlist = models.ManyToManyField(Movies, related_name='watchlist', blank=True)
+    watchlist_series = models.ManyToManyField(Series, related_name='watchlist_series', blank=True)
+    likeability = models.JSONField(default=dict, null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        super(ReviewsSeries, self).save(*args, **kwargs)
-        self.series.get_avg_stars()
-        self.series.save()
+        if not self.likeability:
+            self.likeability = {
+                'movies': {'unlike': [], 'like': [], 'verylike': []},
+                'series': {'unlike': [], 'like': [], 'verylike': []}
+                }  
+        super().save(*args, **kwargs)
+    
+    def addunlikemovie(self, movie):
+        if movie not in self.likeability['movies']['unlike']:
+            self.likeability['movies']['unlike'].append(movie)
+            self.save()
 
+    def addlikemovie(self, movie):
+        if movie not in self.likeability['movies']['like']:
+            self.likeability['movies']['like'].append(movie)
+            self.save()
+    
+    def addverylikemovie(self, movie):
+        if movie not in self.likeability['movies']['verylike']:
+            self.likeability['movies']['verylike'].append(movie)
+            self.save()
+
+    def addunlikeserie(self, series):
+        if series not in self.likeability['series']['unlike']:
+            self.likeability['series']['unlike'].append(series)
+            self.save()
+
+    def addlikeserie(self, series):
+        if series not in self.likeability['series']['like']:
+            self.likeability['series']['like'].append(series)
+            self.save()
+    
+    def addverylikeserie(self, series):
+        if series not in self.likeability['series']['verylike']:
+            self.likeability['series']['verylike'].append(series)
+            self.save()
+    
     def __str__(self):
-        return f"{self.series.name} Review - {self.rating}"
+        return self.username
+
+
+class UserAccounts(AbstractUser):
+    PLANS = [
+    ('BASIC', 'BASIC'),
+    ('STANDARD', 'STANDARD'),
+    ('PREMIUM', 'PREMIUM'),
+    ]
+    plans = models.CharField(blank=True, null=True, max_length=20, choices=PLANS)
+    users = models.ManyToManyField(UserProfiles, related_name='users', blank=True)
+     
+    def __str__(self):
+        return '{self.username} - {self.plans}'
