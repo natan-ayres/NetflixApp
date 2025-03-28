@@ -38,21 +38,94 @@ class UserProfilesSerializer(serializers.ModelSerializer):
 class FavoritesSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfiles
-        fields = ['type', 'movieorseries_id']
+        fields = ['add','type', 'movieorseries_id']
 
+    add = serializers.BooleanField(write_only=True)
     type = serializers.CharField(write_only=True)
     movieorseries_id = serializers.IntegerField(write_only=True)
 
     def save(self, **kwargs):
         movieorseries_id = self.validated_data['movieorseries_id']
         instance = self.instance
-        if self.validated_data['type'] == 'movie':
-            instance.addfavoritemovie(movieorseries_id)
-        elif self.validated_data['type'] == 'series':
-            instance.addfavoriteserie(movieorseries_id)
+        if self.validated_data['add'] == True:
+            if self.validated_data['type'] == 'movie':
+                instance.addfavoritemovie(movieorseries_id)
+            elif self.validated_data['type'] == 'series':
+                instance.addfavoriteserie(movieorseries_id)
+            else:
+                raise serializers.ValidationError('Invalid type')
+        elif self.validated_data['add'] == False:
+            if self.validated_data['type'] == 'movie':
+                instance.unfavoritemovie(movieorseries_id)
+            elif self.validated_data['type'] == 'series':
+                instance.unfavoriteserie(movieorseries_id)
+            else:
+                raise serializers.ValidationError('Invalid type')
         else:
-            raise serializers.ValidationError('Invalid type')
+            raise serializers.ValidationError('Invalid add value')
         return instance
+    
+class WatchingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfiles
+        fields = ['add','type', 'movieorseries_id']
+    add = serializers.BooleanField(write_only=True)
+    type = serializers.CharField(write_only=True)
+    movieorseries_id = serializers.IntegerField(write_only=True)
+
+    def save(self, **kwargs):
+        movieorseries_id = self.validated_data['movieorseries_id']
+        instance = self.instance
+        if self.validated_data['add'] == True:
+            if self.validated_data['type'] == 'movie':
+                instance.addwatchingmovie(movieorseries_id)
+            elif self.validated_data['type'] == 'series':
+                instance.addwatchingserie(movieorseries_id)
+            else:
+                raise serializers.ValidationError('Invalid type')
+            return instance
+        elif self.validated_data['add'] == False:
+            if self.validated_data['type'] == 'movie':
+                instance.unaddwatchingmovie(movieorseries_id)
+            elif self.validated_data['type'] == 'series':
+                instance.unaddwatchingserie(movieorseries_id)
+            else:
+                raise serializers.ValidationError('Invalid type')
+            return instance
+        else:
+            raise serializers.ValidationError('Invalid add value')
+    
+class LikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfiles
+        fields = ['add','type', 'movieorseries_id']
+    add = serializers.BooleanField(write_only=True)
+    type = serializers.CharField(write_only=True)
+    movieorseries_id = serializers.IntegerField(write_only=True)
+
+    def save(self, **kwargs):
+        movieorseries_id = self.validated_data['movieorseries_id']
+        instance = self.instance
+        if self.validated_data['add'] == True:
+            if self.validated_data['type'] == 'like':
+                instance.addlikemovie(movieorseries_id)
+            elif self.validated_data['type'] == 'unlike':
+                instance.addunlikeserie(movieorseries_id)
+            elif self.validated_data['type'] == 'verylike':
+                instance.addverylikemovie(movieorseries_id)
+            else:
+                raise serializers.ValidationError('Invalid type')
+        elif self.validated_data['add'] == False:
+            if self.validated_data['type'] == 'like':
+                instance.unaddunlikemovie(movieorseries_id)
+            elif self.validated_data['type'] == 'unlike':
+                instance.unaddunlike(movieorseries_id)
+            elif self.validated_data['type'] == 'verylike':
+                instance.unaddveryunlike(movieorseries_id)
+            else:
+                raise serializers.ValidationError('Invalid type')
+        else:
+            raise serializers.ValidationError('Invalid add value')
 
 
 class UserAccountsSerializer(serializers.ModelSerializer):

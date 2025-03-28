@@ -22,27 +22,11 @@ class Movies(models.Model):
     rated = models.CharField(blank=True, null=True, max_length=20, choices=RATINGS)
     launch_date = models.CharField(blank=True, null=True, max_length=20)
     runtime = models.CharField(blank=True, null=True)
-    likeability = models.JSONField(default=dict, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.likeability:
             self.likeability = {'unlike': [], 'like': [], 'verylike': []}  
         super().save(*args, **kwargs)
-    
-    def addunlike(self, profile):
-        if profile not in self.likeability['unlike']:
-            self.likeability['unlike'].append(profile)
-            self.save()
-
-    def addlike(self, profile):
-        if profile not in self.likeability['like']:
-            self.likeability['like'].append(profile)
-            self.save()
-    
-    def addverylike(self, profile):
-        if profile not in self.likeability['verylike']:
-            self.likeability['verylike'].append(profile)
-            self.save()
 
     def __str__(self):
         return '{self.title}({launch_date})'
@@ -172,6 +156,36 @@ class UserProfiles(models.Model):
     def addverylikeserie(self, series):
         if series not in self.likeability['series']['verylike']:
             self.likeability['series']['verylike'].append(series)
+            self.save()
+
+    def unaddunlikemovie(self, movie):
+        if movie in self.likeability['movies']['unlike']:
+            self.likeability['movies']['unlike'].remove(movie)
+            self.save()
+            
+    def unaddlikemovie(self, movie):
+        if movie in self.likeability['movies']['like']:
+            self.likeability['movies']['like'].remove(movie)
+            self.save()
+
+    def unaddverylikemovie(self, movie):
+        if movie in self.likeability['movies']['verylike']:
+            self.likeability['movies']['verylike'].remove(movie)
+            self.save()
+
+    def unaddunlikeserie(self, series):
+        if series in self.likeability['series']['unlike']:
+            self.likeability['series']['unlike'].remove(series)
+            self.save()
+
+    def unaddlikeserie(self, series):
+        if series in self.likeability['series']['like']:
+            self.likeability['series']['like'].remove(series)
+            self.save()
+
+    def unaddverylikeserie(self, series):
+        if series in self.likeability['series']['verylike']:
+            self.likeability['series']['verylike'].remove(series)
             self.save()
     
     def __str__(self):
