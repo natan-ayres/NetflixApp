@@ -1,15 +1,15 @@
 from rest_framework import serializers
 from .models import Movies, Series, UserProfiles, UserAccounts
 
-class MoviesSerializer(serializers.ModelSerializer):
+class ApiMoviesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movies
-        fields = '__all__'
+        fields = ['title']
 
-class SeriesSerializer(serializers.ModelSerializer):
+class ApiSeriesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Series
-        fields = '__all__'
+        fields = ['title']
 
 class UserProfilesSerializer(serializers.ModelSerializer):
     class Meta:

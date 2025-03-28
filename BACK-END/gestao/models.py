@@ -17,11 +17,11 @@ class Movies(models.Model):
     director = models.CharField(max_length=100, blank=True, null=True)
     writer = models.TextField(max_length=200, blank=True, null=True)
     actors = models.TextField(max_length=200, blank=True, null=True)
-    sinopse = models.TextField(max_length=200)
+    plot = models.TextField(max_length=200)
     poster_url = models.CharField(max_length=200)
     rated = models.CharField(blank=True, null=True, max_length=20, choices=RATINGS)
     launch_date = models.CharField(blank=True, null=True, max_length=20)
-    runtime = models.IntegerField()
+    runtime = models.CharField(blank=True, null=True)
     likeability = models.JSONField(default=dict, null=True, blank=True)
 
     def save(self, *args, **kwargs):
@@ -65,11 +65,10 @@ class Series(models.Model):
     director = models.CharField(max_length=100, blank=True, null=True)
     writer = models.TextField(max_length=200, blank=True, null=True)
     actors = models.TextField(max_length=200, blank=True, null=True)
-    sinopse = models.TextField(max_length=200)
+    plot = models.TextField(max_length=200)
     rated = models.CharField(blank=True, null=True, max_length=20, choices=RATINGS)
     poster_url = models.CharField(max_length=200)
     launch_date = models.CharField(blank=True, null=True, max_length=20)
-    episodes = models.IntegerField()
     seasons = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
