@@ -1,9 +1,10 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from .models import Movies, Series, UserProfiles, UserAccounts
-from .serializers import ApiMoviesSerializer, ApiSeriesSerializer, UserProfilesSerializer, UserAccountsSerializer
+from .serializers import ApiMoviesSerializer, ApiSeriesSerializer, UserProfilesSerializer, UserAccountsSerializer, FavoritesSerializer
 from rest_framework.permissions import IsAuthenticated
 import requests
+from rest_framework.decorators import action
 from netflix.local_settings import API_KEY
 
 
@@ -84,7 +85,7 @@ class UserProfilesViewSet(viewsets.ModelViewSet):
     serializer_class = UserProfilesSerializer
     def get_queryset(self):
         user = self.request.user
-        return UserProfiles.objects.filter(account__in=user.id)
+        return UserProfiles.objects.filter(account=user.id)
     
 class UserAccountsViewSet(viewsets.ModelViewSet):
     permission_classes = ()
@@ -96,3 +97,17 @@ class UserAccountsViewSet(viewsets.ModelViewSet):
         except:
             return "No Info about User"
 
+class FavoritesViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = FavoritesSerializer
+    def get_queryset(self):
+        user = self.request.user
+        return UserProfiles.objects.filter(account=user.id)
+
+    def create(self, request, *args, **kwargs):
+        return Response({"detail": "Método não permitido"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+    def destroy(self, request, *args, **kwargs):
+        return Response({"detail": "Método não permitido"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+        

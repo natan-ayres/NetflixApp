@@ -14,15 +14,46 @@ class ApiSeriesSerializer(serializers.ModelSerializer):
 class UserProfilesSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfiles
-        fields = ['name']
+        fields = ['name', 'image']
 
     def create(self, validated_data):
         request = self.context.get('request') 
         user = request.user
         validated_data['account'] = user.id
+        if validated_data.get('image') is None:
+            validated_data['image'] = 'profile_pics/default.jpg'
         profile = UserProfiles(**validated_data)
-        profile.save()  
+        profile.save() 
+        user.addprofile(profile) 
         return profile
+    
+    def update(self, instance, validated_data):
+        request = self.context.get('request')
+        user = request.user
+        if instance.account != user:
+            raise serializers.ValidationError('You do not have permission to update this profile')
+        instance = super().update(instance, validated_data)
+        return instance
+    
+class FavoritesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfiles
+        fields = ['type', 'movieorseries_id']
+
+    type = serializers.CharField(write_only=True)
+    movieorseries_id = serializers.IntegerField(write_only=True)
+
+    def save(self, **kwargs):
+        movieorseries_id = self.validated_data['movieorseries_id']
+        instance = self.instance
+        if self.validated_data['type'] == 'movie':
+            instance.addfavoritemovie(movieorseries_id)
+        elif self.validated_data['type'] == 'series':
+            instance.addfavoriteserie(movieorseries_id)
+        else:
+            raise serializers.ValidationError('Invalid type')
+        return instance
+
 
 class UserAccountsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -42,6 +73,15 @@ class UserAccountsSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance = super().update(instance, validated_data)
         return instance
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['profiles'] = [{'id': profile.id, 'name': profile.name} for profile in instance.profiles.all()]
+        representation['plans'] = instance.plans
+        representation.pop('password', None)
+        return representation
+
+    
     
 
 
