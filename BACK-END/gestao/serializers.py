@@ -16,6 +16,14 @@ class UserProfilesSerializer(serializers.ModelSerializer):
         model = UserProfiles
         fields = ['name']
 
+    def create(self, validated_data):
+        request = self.context.get('request') 
+        user = request.user
+        validated_data['account'] = user.id
+        profile = UserProfiles(**validated_data)
+        profile.save()  
+        return profile
+
 class UserAccountsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAccounts
@@ -34,6 +42,8 @@ class UserAccountsSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance = super().update(instance, validated_data)
         return instance
+    
+
 
 
 

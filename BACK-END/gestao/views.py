@@ -86,18 +86,6 @@ class UserProfilesViewSet(viewsets.ModelViewSet):
         user = self.request.user
         return UserProfiles.objects.filter(account__in=user.id)
     
-    def create(self, request, *args, **kwargs):
-        user = request.user
-        data = request.data
-        obj = UserProfiles(
-            name = data.get('name'),
-            account = user.id,
-            image = 'profile_pics/NatanAyres2_kNKp7hO.jpg'
-        )
-        obj.save()
-        serializer = self.get_serializer(data=data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
 class UserAccountsViewSet(viewsets.ModelViewSet):
     permission_classes = ()
     serializer_class = UserAccountsSerializer
