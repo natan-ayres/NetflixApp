@@ -19,7 +19,7 @@ class UserProfilesSerializer(serializers.ModelSerializer):
 class UserAccountsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAccounts
-        fields = '__all__'
+        fields = ['username', 'email', 'password', 'password2']
 
 
 

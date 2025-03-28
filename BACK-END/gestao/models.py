@@ -82,10 +82,8 @@ class UserProfiles(models.Model):
     name = models.CharField(max_length=30)
     image = models.ImageField(upload_to='profile_pics', blank=True, null=True)
     account = models.IntegerField(default=0)
-    favorites = models.ManyToManyField(Movies, related_name='favorites', blank=True)
-    favorites_series = models.ManyToManyField(Series, related_name='favorites_series', blank=True)
-    watchlist = models.ManyToManyField(Movies, related_name='watchlist', blank=True)
-    watchlist_series = models.ManyToManyField(Series, related_name='watchlist_series', blank=True)
+    favorites = models.JSONField(default=dict, blank=True, null=True)
+    watching = models.JSONField(default=dict, blank=True, null=True)
     likeability = models.JSONField(default=dict, null=True, blank=True)
 
     def save(self, *args, **kwargs):
@@ -94,7 +92,57 @@ class UserProfiles(models.Model):
                 'movies': {'unlike': [], 'like': [], 'verylike': []},
                 'series': {'unlike': [], 'like': [], 'verylike': []}
                 }  
+        if not self.favorites:
+            self.favorites = {
+                'movies': [],
+                'series': []
+                }
+        if not self.watching:
+            self.watching = {
+                'movies': [],
+                'series': []
+                }
         super().save(*args, **kwargs)
+
+    def addwatchingmovie(self, movie):
+        if movie not in self.watching['movies']:
+            self.watching['movies'].append(movie)
+            self.save()
+    
+    def addwatchingseries(self, series):
+        if series not in self.watching['series']:
+            self.watching['series'].append(series)
+            self.save()
+
+    def unaddwatchingmovie(self, movie):
+        if movie in self.watching['movies']:
+            self.watching['movies'].remove(movie)
+            self.save()
+    
+    def unaddwatchingseries(self, series):
+        if series in self.watching['series']:
+            self.watching['series'].remove(series)
+            self.save()
+
+    def addfavoritemovie(self, movie):
+        if movie not in self.favorites['movies']:
+            self.favorites['movies'].append(movie)
+            self.save()
+    
+    def addfavoriteserie(self, series):
+        if series not in self.favorites['series']:
+            self.favorites['series'].append(series)
+            self.save()
+    
+    def unaddfavoritemovie(self, movie):
+        if movie in self.favorites['movies']:
+            self.favorites['movies'].remove(movie)
+            self.save()
+
+    def unaddfavoriteserie(self, series):
+        if series in self.favorites['series']:
+            self.favorites['series'].remove(series)
+            self.save()
     
     def addunlikemovie(self, movie):
         if movie not in self.likeability['movies']['unlike']:
@@ -127,7 +175,7 @@ class UserProfiles(models.Model):
             self.save()
     
     def __str__(self):
-        return self.username
+        return self.name
 
 
 class UserAccounts(AbstractUser):
@@ -141,6 +189,11 @@ class UserAccounts(AbstractUser):
     ]
     plans = models.CharField(blank=True, null=True, max_length=20, choices=PLANS, default='BASIC')
     profiles = models.ManyToManyField(UserProfiles, related_name='profiles', blank=True)
+
+    def addprofile(self, profile):
+        if profile not in self.profiles.all():
+            self.profiles.add(profile)
+            self.save()
      
     def __str__(self):
         return '{self.username} - {self.plans}'
