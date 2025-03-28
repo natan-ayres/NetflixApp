@@ -1,7 +1,8 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from .models import Movies, Series
-from .serializers import ApiMoviesSerializer, ApiSeriesSerializer
+from .models import Movies, Series, UserProfiles, UserAccounts
+from .serializers import ApiMoviesSerializer, ApiSeriesSerializer, UserProfilesSerializer, UserAccountsSerializer
+from rest_framework.permissions import IsAuthenticated
 import requests
 from netflix.local_settings import API_KEY
 
@@ -77,3 +78,33 @@ class ApiSeriesViewSet(viewsets.ModelViewSet):
         # Serializa os objetos criados
         serializer = self.get_serializer(movies_created, many=True)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+class UserProfilesViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UserProfilesSerializer
+    def get_queryset(self):
+        user = self.request.user
+        return UserProfiles.objects.filter(account__in=user.id)
+    
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        data = request.data
+        obj = UserProfiles(
+            name = data.get('name'),
+            account = user.id,
+            image = 'profile_pics/NatanAyres2_kNKp7hO.jpg'
+        )
+        obj.save()
+        serializer = self.get_serializer(data=data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+class UserAccountsViewSet(viewsets.ModelViewSet):
+    permission_classes = ()
+    serializer_class = UserAccountsSerializer
+    def get_queryset(self):
+        try:
+            user = self.request.user
+            return UserAccounts.objects.filter(id=user.id)
+        except:
+            return "No Info about User"
+
