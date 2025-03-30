@@ -34,6 +34,14 @@ class UserProfilesSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('You do not have permission to update this profile')
         instance = super().update(instance, validated_data)
         return instance
+
+    def remove(self, instance):
+        request = self.context.get('request')
+        user = request.user
+        if instance.account != user:
+            raise serializers.ValidationError('You do not have permission to remove this profile')
+        instance.delete()
+        return instance
     
 class FavoritesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -171,6 +179,14 @@ class UserAccountsSerializer(serializers.ModelSerializer):
         if password:
             instance.set_password(password)
         instance = super().update(instance, validated_data)
+        return instance
+    
+    def remove(self, instance):
+        request = self.context.get('request')
+        user = request.user
+        if instance.id != user.id:
+            raise serializers.ValidationError('You do not have permission to remove this user')
+        instance.delete()
         return instance
     
     def to_representation(self, instance):
