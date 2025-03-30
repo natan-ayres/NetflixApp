@@ -1,11 +1,44 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from .models import Movies, Series, UserProfiles, UserAccounts
-from .serializers import ApiMoviesSerializer, ApiSeriesSerializer, UserProfilesSerializer, UserAccountsSerializer, FavoritesSerializer, WatchingSerializer, LikeSerializer, PlansUpdaterSerializer
+from .serializers import ApiMoviesSerializer, ApiSeriesSerializer, UserProfilesSerializer, UserAccountsSerializer, FavoritesSerializer, WatchingSerializer, LikeSerializer, PlansUpdaterSerializer, MoviesSerializer, SeriesSerializer
 from rest_framework.permissions import IsAuthenticated
 import requests
 from rest_framework.decorators import action
 from netflix.local_settings import API_KEY
+
+class MoviesViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    queryset = Movies.objects.all()
+    serializer_class = MoviesSerializer
+    def get_queryset(self):
+        return Movies.objects.all()
+    
+    def create(self, request, *args, **kwargs):
+        return Response({"detail": "Método não permitido"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+    def destroy(self, request, *args, **kwargs):
+        return Response({"detail": "Método não permitido"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+    def update(self, request, *args, **kwargs):
+        return Response({"detail": "Método não permitido"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+   
+
+class SeriesViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    queryset = Series.objects.all()
+    serializer_class = SeriesSerializer
+    def get_queryset(self):
+        return Series.objects.all()
+    
+    def create(self, request, *args, **kwargs):
+        return Response({"detail": "Método não permitido"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+    def destroy(self, request, *args, **kwargs):
+        return Response({"detail": "Método não permitido"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+    def update(self, request, *args, **kwargs):
+        return Response({"detail": "Método não permitido"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class ApiMoviesViewSet(viewsets.ModelViewSet):
