@@ -126,6 +126,32 @@ class LikeSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError('Invalid type')
         else:
             raise serializers.ValidationError('Invalid add value')
+        
+
+# tenho que resolver essa merda       
+class PlansUpdaterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserAccounts
+        fields = ['plans']
+
+    def update(self, instance, validated_data):
+        request = self.context.get('request')
+        user = request.user
+        if instance.id != user.id:
+            raise serializers.ValidationError('You do not have permission to update this user')
+        plans = validated_data.get('plans')
+        if plans not in ('PREMIUM', 'STANDARD', 'BASIC'):
+            raise serializers.ValidationError('Invalid plan')
+        elif plans is None:
+            raise serializers.ValidationError('Plans cannot be null')
+        elif plans == '':
+            raise serializers.ValidationError('Plans cannot be empty')
+        elif plans == instance.plans:
+            raise serializers.ValidationError('Plans cannot be the same')
+        else:
+            instance.plans = plans
+            instance.save()
+            return instance
 
 
 class UserAccountsSerializer(serializers.ModelSerializer):

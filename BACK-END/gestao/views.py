@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from .models import Movies, Series, UserProfiles, UserAccounts
-from .serializers import ApiMoviesSerializer, ApiSeriesSerializer, UserProfilesSerializer, UserAccountsSerializer, FavoritesSerializer, WatchingSerializer, LikeSerializer
+from .serializers import ApiMoviesSerializer, ApiSeriesSerializer, UserProfilesSerializer, UserAccountsSerializer, FavoritesSerializer, WatchingSerializer, LikeSerializer, PlansUpdaterSerializer
 from rest_framework.permissions import IsAuthenticated
 import requests
 from rest_framework.decorators import action
@@ -86,6 +86,16 @@ class UserProfilesViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         return UserProfiles.objects.filter(account=user.id)
+    
+class PlansUpdaterViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = PlansUpdaterSerializer
+    def get_queryset(self):
+        try:
+            user = self.request.user
+            return UserAccounts.objects.filter(id=user.id)
+        except:
+            return "No Info about User"
     
 class UserAccountsViewSet(viewsets.ModelViewSet):
     permission_classes = ()

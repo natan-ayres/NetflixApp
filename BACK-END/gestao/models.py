@@ -162,7 +162,7 @@ class UserProfiles(models.Model):
         if movie in self.likeability['movies']['unlike']:
             self.likeability['movies']['unlike'].remove(movie)
             self.save()
-            
+
     def unaddlikemovie(self, movie):
         if movie in self.likeability['movies']['like']:
             self.likeability['movies']['like'].remove(movie)
@@ -208,6 +208,6 @@ class UserAccounts(AbstractUser):
         if profile not in self.profiles.all():
             self.profiles.add(profile)
             self.save()
-     
+
     def __str__(self):
-        return '{self.username} - {self.plans}'
+        return f'{self.username} - {self.plans}'
